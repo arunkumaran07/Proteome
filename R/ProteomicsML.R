@@ -1,5 +1,8 @@
 # ---- IO ----
 
+#' @importFrom stats p.adjust
+NULL
+
 #' Read a "wide" proteomics CSV (genes in rows, samples in columns)
 #' Assumes col 1 = gene IDs. First data row (or second) holds group labels.
 #' @param path CSV path
@@ -7,9 +10,8 @@
 #' @param group_row "auto", 1 or 2
 #' @return list(expr, groups, samples) with attr(..., "group_row")
 #' @export
-#' @importFrom stats p.adjust
-NULL
-devtools::document()
+
+
 read_wide_proteomics <- function(path, id_col = 1, group_row = c("auto",1,2)) {
   group_row <- match.arg(as.character(group_row), c("auto","1","2"))
   df <- utils::read.csv(path, header = TRUE, check.names = FALSE, stringsAsFactors = FALSE)
