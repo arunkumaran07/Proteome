@@ -1,0 +1,42 @@
+Package: ProteomicsML
+Title: Cancer Proteomics Analysis Toolkit (DE, Enrichment, ML, Clustering)
+Version: 0.2.2
+Authors@R: 
+    person(given = "Arun K", family = "Anguraj Vadivel", email = "arunkumaran07.ak@gmail.com",
+           role = c("aut", "cre"))
+Description: Clean, modular functions to perform differential expression (Welch t-test),
+    Reactome and GO/KEGG enrichment, PCA/t-SNE/PLS-DA, LASSO and Random-Forest models,
+    and heatmap-based clustering with dynamic module detection for proteomics data. Includes
+    an interactive wizard and flexible group-comparison helpers (ref vs pooled, ref vs target,
+    or all pairwise comparisons).
+License: MIT + file LICENSE
+Encoding: UTF-8
+LazyData: true
+Depends:
+    R (>= 4.2)
+Imports:
+    dplyr,
+    tidyr,
+    tibble,
+    ggplot2,
+    stringr,
+    utils,
+    stats
+Suggests:
+    EnhancedVolcano,
+    pheatmap,
+    Rtsne,
+    glmnet,
+    randomForest,
+    pls,
+    clusterProfiler,
+    ReactomePA,
+    org.Hs.eg.db,
+    dynamicTreeCut,
+    enrichplot,
+    testthat (>= 3.1.0),
+    knitr,
+    rmarkdown
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.3.1
+Config/testthat/edition: 3
