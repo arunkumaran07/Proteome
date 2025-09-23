@@ -1,7 +1,7 @@
 # ProteomicsML 0.2.2
 
 Modular R package for cancer proteomics:
-- Read wide CSVs with auto-detected group row
+- Read wide CSVs with auto-detected group row (DDA/DIA abundance data)
 - Differential expression (ref vs pooled / ref vs target / pairwise)
 - Volcano plots
 - Reactome GSEA + across-comparison summaries
