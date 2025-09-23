@@ -1,6 +1,13 @@
-![R-CMD-check](https://github.com/arunkumaran07/Proteome/actions/workflows/R-CMD-check.yaml/badge.svg)
+---
+output: github_document
+---
 
-# ProteomicsML 0.2.2
+# ProteomicsML <img src="man/figures/logo.png" align="right" width="120"/>
+
+<!-- badges: start -->
+![R-CMD-check](https://github.com/arunkumaran07/Proteome/actions/workflows/R-CMD-check.yaml/badge.svg)
+![pkgdown](https://github.com/arunkumaran07/Proteome/actions/workflows/pkgdown.yml/badge.svg)
+<!-- badges: end -->
 
 Modular R package for cancer proteomics:
 - Read wide CSVs with auto-detected group row (DDA/DIA abundance data)
@@ -11,10 +18,9 @@ Modular R package for cancer proteomics:
 - LASSO & Random Forest
 - Heatmap clustering + module enrichment
 
-## Install
+## Installation
+
 ```r
-# install.packages("devtools")
-devtools::install_github("arunkumaran07/Proteome")
+# install.packages("remotes")
+remotes::install_github("arunkumaran07/Proteome")
 library(ProteomicsML)
-run_proteomics_wizard()
-```
