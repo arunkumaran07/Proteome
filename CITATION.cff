@@ -1,0 +1,9 @@
+cff-version: 1.2.0
+title: ProteomicsML
+message: If you use this package, please cite it.
+authors:
+  - family-names: Anguraj Vadivel
+    given-names: Arun K
+    email: arunkumaran07.ak@gmail.com
+version: 0.2.2
+repository-code: https://github.com/arunkumaran07/Proteome
