@@ -1,11 +1,40 @@
-url: https://arunkumaran07.github.io/Proteome
+package: ProteomicsML
+url: https://arunkumaran07.github.io/Proteome/
+
 template:
   bootstrap: 5
+  bslib:
+    primary: "#3d6dcc"
+
+home:
+  title: "ProteomicsML: Proteomics Data Analysis in R"
+  description: >
+    Utilities to import, wrangle, analyze and visualize proteomics datasets.
+
+authors:
+  Arun Kumaran:
+    href: https://github.com/arunkumaran07
+
 navbar:
   structure:
-    left:  [reference, articles]
-    right: [github]
+    left: [reference, articles, news]
+    right: [search, github]
   components:
     github:
-      icon: fa-github
+      icon: fab fa-github
       href: https://github.com/arunkumaran07/Proteome
+
+reference:
+  - title: "Core functions"
+    contents:
+      - matches("^[A-Za-z].*")
+
+articles:
+  - title: "Vignettes"
+    navbar: ~
+
+news:
+  one_page: true
+
+development:
+  mode: auto
