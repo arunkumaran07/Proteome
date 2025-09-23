@@ -1,3 +1,5 @@
+![R-CMD-check](https://github.com/arunkumaran07/Proteome/actions/workflows/R-CMD-check.yaml/badge.svg)
+
 # ProteomicsML 0.2.2
 
 Modular R package for cancer proteomics:
