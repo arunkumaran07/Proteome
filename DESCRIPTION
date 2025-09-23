@@ -1,15 +1,16 @@
 Package: ProteomicsML
 Title: Cancer Proteomics Analysis Toolkit (DE, Enrichment, ML, Clustering)
 Version: 0.2.2
-Authors@R: 
-    person(given = "Arun K", family = "Anguraj Vadivel", email = "arunkumaran07.ak@gmail.com",
-           role = c("aut", "cre"))
+Authors@R: person(given = "Arun K", family = "Anguraj Vadivel",
+  email = "arunkumaran07.ak@gmail.com", role = c("aut", "cre"))
 Description: Clean, modular functions to perform differential expression (Welch t-test),
     Reactome and GO/KEGG enrichment, PCA/t-SNE/PLS-DA, LASSO and Random-Forest models,
     and heatmap-based clustering with dynamic module detection for proteomics data. Includes
     an interactive wizard and flexible group-comparison helpers (ref vs pooled, ref vs target,
     or all pairwise comparisons).
 License: MIT + file LICENSE
+URL: https://github.com/arunkumaran07/Proteome
+BugReports: https://github.com/arunkumaran07/Proteome/issues
 Encoding: UTF-8
 LazyData: true
 Depends:
