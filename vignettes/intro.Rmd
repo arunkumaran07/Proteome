@@ -1,0 +1,23 @@
+
+---
+
+## 📄 Vignette
+
+```markdown
+---
+title: "Getting Started with ProteomicsML"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Getting Started with ProteomicsML}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+# Overview
+
+ProteomicsML provides an end-to-end workflow for common proteomics data analyses.  
+This vignette shows how to load data, run differential expression, and launch the interactive wizard.
+
+```{r setup, include=FALSE}
+library(ProteomicsML)
+set. Seed(1)
