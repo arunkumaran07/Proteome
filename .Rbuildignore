@@ -7,8 +7,9 @@
 ^LICENSE\.md$
 ^docs$
 ^pkgdown\.yml$
-^pkgdown$
+^pkgdown$            
 ^\.DS_Store$
 ^\.vscode$
 ^\.Rproj\.user$
+^.*\.Rproj$
 ^\.env$
