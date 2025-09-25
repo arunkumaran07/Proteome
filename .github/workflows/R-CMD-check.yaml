@@ -34,7 +34,7 @@ jobs:
           needs: check
 
       - name: Check
-        run: rcmdcheck::rcmdcheck(args = c("--no-manual", "--as-cran", "--no-build-vignettes"))
+        run: rcmdcheck::rcmdcheck(args = c("--no-manual", "--as-cran"), env  = c("_R_CHECK_BUILD_VIGNETTES_" = "false", "_R_CHECK_FORCE_SUGGESTS_"  = "false"))
         shell: Rscript {0}
 
       - name: Upload check results
