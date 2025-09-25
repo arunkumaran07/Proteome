@@ -9,7 +9,7 @@ template:
 home:
   title: "ProteomicsML: Proteomics Data Analysis in R"
   description: >
-    Utilities to import, wrangle, analyze and visualize proteomics datasets.
+    Utilities to import, wrangle, analyze, and visualize proteomics datasets.
 
 authors:
   Arun Kumaran:
@@ -27,11 +27,10 @@ navbar:
 reference:
   - title: "Core functions"
     contents:
-      - matches("^[A-Za-z].*")
+      - matches("^[A-Za-z].*")   # all exported functions; refine later if you want sections
 
 articles:
-  - title: "Vignettes"
-    navbar: ~
+  auto: true   # automatically include all vignettes under “Articles”
 
 news:
   one_page: true
