@@ -6,7 +6,7 @@
 ^README-.*\.jpg$
 ^LICENSE\.md$
 ^docs$
-^pkgdown\.yml$
+^_pkgdown\.yml$
 ^pkgdown$            
 ^\.DS_Store$
 ^\.vscode$
