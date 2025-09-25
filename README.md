@@ -6,7 +6,7 @@ output: github_document
 
 <!-- badges: start -->
 ![R-CMD-check](https://github.com/arunkumaran07/Proteome/actions/workflows/R-CMD-check.yaml/badge.svg)
-![pkgdown](https://github.com/arunkumaran07/Proteome/actions/workflows/pkgdown.yml/badge.svg)
+![pkgdown](https://github.com/arunkumaran07/Proteome/actions/workflows/pkgdown.yaml/badge.svg)
 <!-- badges: end -->
 
 Modular R package for cancer proteomics:
