@@ -22,15 +22,19 @@ navbar:
   components:
     github:
       icon: fab fa-github
+      aria-label: "GitHub repository"
       href: https://github.com/arunkumaran07/Proteome
 
 reference:
   - title: "Core functions"
     contents:
-      - matches("^[A-Za-z].*")   # all exported functions; refine later if you want sections
+      - matches("^[A-Za-z].*")
 
 articles:
-  auto: true   # automatically include all vignettes under “Articles”
+  - title: "Vignettes"
+    contents:
+      - intro        
+      - SOP-running-the-wizard
 
 news:
   one_page: true
