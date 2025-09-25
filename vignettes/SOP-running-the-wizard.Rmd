@@ -1,3 +1,12 @@
+ ---
+  title: "SOP: Running the ProteomicsML Wizard"
+  output: rmarkdown::html_vignette
+  vignette: >
+    %\VignetteIndexEntry{SOP: Running the ProteomicsML Wizard}
+    %\VignetteEngine{knitr::rmarkdown}
+    %\VignetteEncoding{UTF-8}
+  ---
+
 SOP: Using the ProteomicsML Wizard
 
 Purpose
