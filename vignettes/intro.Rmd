@@ -1,9 +1,3 @@
-
----
-
-## 📄 Vignette
-
-```markdown
 ---
 title: "Getting Started with ProteomicsML"
 output: rmarkdown::html_vignette
@@ -15,9 +9,98 @@ vignette: >
 
 # Overview
 
-ProteomicsML provides an end-to-end workflow for common proteomics data analyses.  
-This vignette shows how to load data, run differential expression, and launch the interactive wizard.
+**ProteomicsML** provides an end-to-end workflow for common proteomics data analyses:
+- Read wide-format CSV (proteins × samples) with group labels  
+- Differential expression (Welch t-test) and volcano plots  
+- Reactome summaries across comparisons  
+- Dimensionality reduction (PCA, t-SNE, PLS-DA)  
+- Machine learning (LASSO, Random Forest)  
+- Clustering, module detection, and enrichment  
+
+This vignette loads a small demo dataset, runs differential expression, and shows how to launch the interactive wizard (disabled during CI).
 
 ```{r setup, include=FALSE}
+knitr::opts_chunk$set(message = FALSE, warning = FALSE)
+set.seed(1)
+Load the package
+{r}
+Copy code
 library(ProteomicsML)
-set. Seed(1)
+Load the demo CSV (portable path)
+The example CSV is installed with the package at inst/extdata/example_proteome.csv.
+Use system.file() so the path works on any machine and on CI:
+
+{r}
+Copy code
+csv_path <- system.file("extdata", "example_proteome.csv", package = "ProteomicsML")
+stopifnot(file.exists(csv_path))
+csv_path
+Read wide-format proteomics data
+Rows = proteins (first column = IDs)
+
+Columns = samples
+
+First (or second) row contains group labels (e.g., Normal, Tumour)
+
+{r}
+Copy code
+io <- read_wide_proteomics(csv_path, group_row = "auto")
+str(io)
+Differential expression (Welch t-test, BH correction)
+Pick your reference group (here we use the first factor level for demonstration):
+
+{r}
+Copy code
+ref_group <- levels(io$groups)[1]
+ref_group
+de <- diff_expr_ttest(io$expr, io$groups, ref = ref_group)
+head(de)
+Volcano plot
+If EnhancedVolcano is available, plot_volcano() will use it; otherwise it falls back to ggplot2.
+
+{r}
+Copy code
+# This will use EnhancedVolcano if installed, otherwise ggplot2 fallback
+plot_volcano(de)
+To keep CI runs fast, you can set eval=FALSE for heavy plotting chunks.
+
+Interactive wizard (not executed in CI)
+The wizard opens a console menu to guide you through analyses (DE, Reactome summary, PCA/t-SNE/PLS-DA, ML, clustering).
+Because vignettes run non-interactively on CI, we don’t evaluate it here.
+
+{r
+Copy code
+# Launch the interactive menu in your console:
+run_proteomics_wizard()
+What the wizard helps with
+Differential expression + volcano
+
+Reactome pathway summary across comparisons
+
+PCA / t-SNE / PLS-DA
+
+Machine learning (LASSO + Random Forest)
+
+Heatmap + module detection + enrichment
+
+Notes on optional dependencies
+Some features rely on packages listed under Suggests (installed only if you choose to).
+Code in this vignette is written to work even if these are absent. For example:
+
+{r
+Copy code
+# Example guard for optional steps:
+if (requireNamespace("ReactomePA", quietly = TRUE) &&
+    requireNamespace("clusterProfiler", quietly = TRUE) &&
+    requireNamespace("org.Hs.eg.db", quietly = TRUE)) {
+  gsea <- reactome_gsea_from_de(de)
+  # downstream analysis here
+}
+Reproducibility
+{r}
+Copy code
+sessionInfo()
+yaml
+Copy code
+
+---
