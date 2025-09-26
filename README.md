@@ -14,7 +14,7 @@ Modular R package for cancer proteomics:
 - PCA, t-SNE, PLS-DA
 - LASSO & Random Forest
 - Heatmap clustering + module enrichment
-- - **Interactive analysis wizard** for non-coders
+- **Interactive analysis wizard** for non-coders
 
 ## Installation
 
