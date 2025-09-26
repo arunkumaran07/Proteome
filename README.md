@@ -1,6 +1,3 @@
----
-output: github_document
----
 
 # ProteomicsML <img src="man/figures/logo.png" align="right" width="120"/>
 
@@ -24,3 +21,14 @@ Modular R package for cancer proteomics:
 # install.packages("remotes")
 remotes::install_github("arunkumaran07/Proteome")
 library(ProteomicsML)
+
+Example
+# Demo dataset shipped with the package
+csv_path <- system.file("extdata", "example_proteome.csv", package = "ProteomicsML")
+
+io <- read_wide_proteomics(csv_path)
+de <- diff_expr_ttest(io$expr, io$groups, ref = levels(io$groups)[1])
+
+head(de)
+
+See full documentation at: https://arunkumaran07.github.io/Proteome/
