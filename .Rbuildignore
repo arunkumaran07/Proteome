@@ -13,4 +13,3 @@
 ^\.Rproj\.user$
 ^.*\.Rproj$
 ^\.env$
-^vignettes/SOP-running-the-wizard\.Rmd$
