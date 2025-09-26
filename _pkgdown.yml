@@ -29,13 +29,7 @@ reference:
   - title: "Core functions"
     contents:
       - matches("^[A-Za-z].*")
-
-articles:
-  - title: "Vignettes"
-    contents:
-      - intro        
-      - SOP-running-the-wizard
-
+      
 news:
   one_page: true
 
