@@ -1,3 +1,15 @@
+# ProteomicsML 0.2.8
+
+## Bug fixes
+
+* Removed a leftover `exportPattern("^[^\\.]")` from `NAMESPACE` that was
+  wildcard-exporting every non-dot-prefixed top-level object, including the
+  internal helper `zscore_rows` (which has no roxygen `@export` tag and
+  isn't meant to be public). This is what was still causing "Undocumented
+  code objects" NOTEs in 0.2.7 despite all 15 actually-exported functions
+  being fully documented. `NAMESPACE` now matches the explicit `@export`
+  tags in `R/ProteomicsML.R`.
+
 # ProteomicsML 0.2.7
 
 ## Documentation
