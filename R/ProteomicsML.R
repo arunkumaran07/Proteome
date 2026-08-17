@@ -3,15 +3,33 @@
 #' @importFrom stats p.adjust
 NULL
 
-#' Read a "wide" proteomics CSV (genes in rows, samples in columns)
-#' Assumes col 1 = gene IDs. First data row (or second) holds group labels.
-#' @param path CSV path
-#' @param id_col column index of gene/protein IDs (default 1)
-#' @param group_row "auto", 1 or 2
-#' @return list(expr, groups, samples) with attr(..., "group_row")
+#' Read a wide-format proteomics CSV
+#'
+#' Reads a "wide" proteomics CSV (proteins/genes in rows, samples in columns)
+#' where one column holds protein/gene IDs and one row holds the group label
+#' for each sample. The group row location is auto-detected by default. See
+#' the package README for the exact expected CSV layout, or use the demo
+#' dataset shipped in \code{system.file("extdata", "example_proteome.csv",
+#' package = "ProteomicsML")}.
+#'
+#' @param path Path to the CSV file.
+#' @param id_col Integer column index holding protein/gene IDs. Default \code{1}.
+#' @param group_row Which row holds the group labels: \code{"auto"} (default),
+#'   \code{1}, or \code{2}.
+#' @return A list with components:
+#'   \item{expr}{Numeric matrix of expression values (proteins x samples).}
+#'   \item{groups}{Factor of group labels, one per sample.}
+#'   \item{samples}{Character vector of sample names.}
+#'   The list also carries a \code{"group_row"} attribute recording which row
+#'   was used for group labels.
+#' @examples
+#' \dontrun{
+#' csv_path <- system.file("extdata", "example_proteome.csv", package = "ProteomicsML")
+#' io <- read_wide_proteomics(csv_path)
+#' io$expr
+#' io$groups
+#' }
 #' @export
-
-
 read_wide_proteomics <- function(path, id_col = 1, group_row = c("auto",1,2)) {
   group_row <- match.arg(as.character(group_row), c("auto","1","2"))
   df <- utils::read.csv(path, header = TRUE, check.names = FALSE, stringsAsFactors = FALSE)
@@ -50,11 +68,27 @@ read_wide_proteomics <- function(path, id_col = 1, group_row = c("auto",1,2)) {
 # ---- Differential expression ----
 
 #' Differential expression by Welch t-test with BH correction
-#' @param expr matrix [genes x samples]
-#' @param groups factor of length ncol(expr)
-#' @param ref reference group label
-#' @param aliases named vector mapping aliases -> canonical (e.g., NB->Normal)
-#' @return tibble(Gene, log2FC, pvalue, padj)
+#'
+#' Compares a reference group against all other samples pooled together,
+#' using a per-protein Welch t-test on the (assumed log2-scale) expression
+#' values, with Benjamini-Hochberg adjustment across proteins.
+#'
+#' @param expr Numeric matrix of expression values, proteins x samples.
+#' @param groups Factor of group labels, length \code{ncol(expr)}.
+#' @param ref Reference group label (samples not in \code{ref} are pooled as
+#'   the comparison group).
+#' @param aliases Named character vector mapping alias labels to their
+#'   canonical group name (e.g. \code{c(NB = "Normal")}), applied to \code{ref}
+#'   before matching against \code{levels(groups)}.
+#' @return A tibble with columns \code{Gene}, \code{log2FC}, \code{pvalue},
+#'   \code{padj}, sorted by adjusted p-value.
+#' @examples
+#' \dontrun{
+#' csv_path <- system.file("extdata", "example_proteome.csv", package = "ProteomicsML")
+#' io <- read_wide_proteomics(csv_path)
+#' de <- diff_expr_ttest(io$expr, io$groups, ref = levels(io$groups)[1])
+#' head(de)
+#' }
 #' @export
 diff_expr_ttest <- function(expr, groups, ref, aliases = c(NB = "Normal", Control = "Normal")) {
   stopifnot(is.matrix(expr), length(groups) == ncol(expr))
@@ -80,7 +114,24 @@ diff_expr_ttest <- function(expr, groups, ref, aliases = c(NB = "Normal", Contro
   tibble::as_tibble(res[order(res$padj), c("Gene","log2FC","pvalue","padj")])
 }
 
-#' Differential expression: ref vs specific target
+#' Differential expression: reference vs. one specific target group
+#'
+#' Subsets \code{expr}/\code{groups} to just the \code{ref} and \code{target}
+#' groups, then runs \code{\link{diff_expr_ttest}}.
+#'
+#' @param expr Numeric matrix of expression values, proteins x samples.
+#' @param groups Factor of group labels, length \code{ncol(expr)}.
+#' @param ref Reference group label.
+#' @param target Target group label to compare against \code{ref}.
+#' @return A tibble with columns \code{Gene}, \code{log2FC}, \code{pvalue},
+#'   \code{padj}, as returned by \code{\link{diff_expr_ttest}}.
+#' @examples
+#' \dontrun{
+#' csv_path <- system.file("extdata", "example_proteome.csv", package = "ProteomicsML")
+#' io <- read_wide_proteomics(csv_path)
+#' levs <- levels(io$groups)
+#' de <- diff_expr_vs(io$expr, io$groups, ref = levs[1], target = levs[2])
+#' }
 #' @export
 diff_expr_vs <- function(expr, groups, ref, target) {
   stopifnot(is.matrix(expr), length(groups) == ncol(expr))
@@ -93,8 +144,28 @@ diff_expr_vs <- function(expr, groups, ref, target) {
   diff_expr_ttest(expr2, groups2, ref = ref)
 }
 
-#' Pairwise differential expression
-#' If ref is provided: ref vs each other group; else all pairwise combos
+#' Pairwise differential expression across groups
+#'
+#' If \code{ref} is provided, compares \code{ref} against each other group in
+#' turn. If \code{ref} is \code{NULL}, compares every pair of groups.
+#'
+#' @param expr Numeric matrix of expression values, proteins x samples.
+#' @param groups Factor of group labels, length \code{ncol(expr)}.
+#' @param ref Optional reference group label. If \code{NULL} (default), all
+#'   pairwise combinations of groups are compared.
+#' @param global_adjust If \code{TRUE}, also compute a \code{padj_global}
+#'   column with BH adjustment applied across all comparisons combined.
+#'   Default \code{FALSE}.
+#' @return A tibble with columns \code{comparison}, \code{ref}, \code{target},
+#'   \code{Gene}, \code{log2FC}, \code{pvalue}, \code{padj} (and
+#'   \code{padj_global} if \code{global_adjust = TRUE}), stacked across all
+#'   comparisons.
+#' @examples
+#' \dontrun{
+#' csv_path <- system.file("extdata", "example_proteome.csv", package = "ProteomicsML")
+#' io <- read_wide_proteomics(csv_path)
+#' res <- diff_expr_pairwise(io$expr, io$groups, ref = levels(io$groups)[1])
+#' }
 #' @export
 diff_expr_pairwise <- function(expr, groups, ref = NULL, global_adjust = FALSE) {
   stopifnot(is.matrix(expr), length(groups) == ncol(expr))
@@ -123,7 +194,27 @@ diff_expr_pairwise <- function(expr, groups, ref = NULL, global_adjust = FALSE) 
 
 # ---- Plots ----
 
-#' Volcano plot (EnhancedVolcano if available, else ggplot fallback)
+#' Volcano plot of differential expression results
+#'
+#' Plots log2 fold-change against adjusted p-value. Uses
+#' \pkg{EnhancedVolcano} if installed, otherwise falls back to a plain
+#' \pkg{ggplot2} volcano plot.
+#'
+#' @param de A differential expression tibble as returned by
+#'   \code{\link{diff_expr_ttest}} or \code{\link{diff_expr_vs}}, with columns
+#'   \code{Gene}, \code{log2FC}, \code{padj}.
+#' @param p_cut Adjusted p-value significance cutoff, used for the plotted
+#'   threshold line(s). Default \code{0.05}.
+#' @param fc_cut Absolute log2 fold-change cutoff, used for the plotted
+#'   threshold line(s). Default \code{1}.
+#' @return A ggplot object (or an \pkg{EnhancedVolcano} plot object).
+#' @examples
+#' \dontrun{
+#' csv_path <- system.file("extdata", "example_proteome.csv", package = "ProteomicsML")
+#' io <- read_wide_proteomics(csv_path)
+#' de <- diff_expr_ttest(io$expr, io$groups, ref = levels(io$groups)[1])
+#' plot_volcano(de)
+#' }
 #' @export
 plot_volcano <- function(de, p_cut = 0.05, fc_cut = 1) {
   if (requireNamespace("EnhancedVolcano", quietly = TRUE)) {
@@ -143,7 +234,27 @@ plot_volcano <- function(de, p_cut = 0.05, fc_cut = 1) {
 
 # ---- Reactome ----
 
-#' Reactome GSEA from a DE table
+#' Reactome GSEA from a differential expression table
+#'
+#' Maps gene symbols to Entrez IDs and runs Reactome gene set enrichment
+#' analysis (GSEA) ranked by log2 fold-change. Requires the Bioconductor
+#' packages \pkg{ReactomePA}, \pkg{clusterProfiler}, and \pkg{org.Hs.eg.db}
+#' (install via \code{BiocManager::install()}); if any are missing, a message
+#' is printed and \code{NULL} is returned.
+#'
+#' @param de A differential expression tibble with columns \code{Gene} and
+#'   \code{log2FC}, as returned by \code{\link{diff_expr_ttest}}.
+#' @param organism Organism name passed to
+#'   \code{ReactomePA::gsePathway()}. Default \code{"human"}.
+#' @return A GSEA result object from \code{ReactomePA::gsePathway()}, or
+#'   \code{NULL} if the required Bioconductor packages are not installed.
+#' @examples
+#' \dontrun{
+#' csv_path <- system.file("extdata", "example_proteome.csv", package = "ProteomicsML")
+#' io <- read_wide_proteomics(csv_path)
+#' de <- diff_expr_ttest(io$expr, io$groups, ref = levels(io$groups)[1])
+#' gsea <- reactome_gsea_from_de(de)
+#' }
 #' @export
 reactome_gsea_from_de <- function(de, organism = "human") {
   ok <- requireNamespace("ReactomePA", quietly = TRUE) &&
@@ -165,7 +276,26 @@ reactome_gsea_from_de <- function(de, organism = "human") {
                          minGSSize = 10, maxGSSize = 500, verbose = FALSE)
 }
 
-#' Summarise a folder of Reactome GSEA CSVs
+#' Summarise a folder of Reactome GSEA result CSVs
+#'
+#' Reads every CSV in \code{dir} matching \code{pattern} (each expected to be
+#' a per-comparison Reactome GSEA export with \code{Description}, \code{NES},
+#' and \code{p.adjust} columns), combines them, and builds two dot-plots: the
+#' top/bottom pathways by average NES, and the most variable pathways across
+#' comparisons.
+#'
+#' @param dir Directory to search for GSEA CSV files. Default \code{"."}.
+#' @param pattern Regular expression matching GSEA CSV filenames. Default
+#'   \code{"^ReactomeGSEA_.*\\.csv$"}.
+#' @return A list with components:
+#'   \item{data}{Combined tibble of all GSEA results read.}
+#'   \item{topbottom_plot}{ggplot dot-plot of top/bottom pathways by average NES.}
+#'   \item{mostvar_plot}{ggplot dot-plot of the most variable pathways across comparisons.}
+#' @examples
+#' \dontrun{
+#' res <- reactome_across("path/to/gsea_csvs")
+#' res$topbottom_plot
+#' }
 #' @export
 reactome_across <- function(dir = ".", pattern = "^ReactomeGSEA_.*\\.csv$") {
   files <- list.files(dir, pattern = pattern, full.names = TRUE)
@@ -220,7 +350,27 @@ reactome_across <- function(dir = ".", pattern = "^ReactomeGSEA_.*\\.csv$") {
 
 # ---- Dimensionality reduction & ML ----
 
-#' PCA
+#' Principal component analysis of a proteomics matrix
+#'
+#' Runs \code{stats::prcomp()} on samples (rows = samples) and returns the
+#' first two components plotted by group.
+#'
+#' @param expr Numeric matrix of expression values, proteins x samples.
+#' @param groups Optional factor of group labels, length \code{ncol(expr)},
+#'   used to color the plot. Default \code{NULL}.
+#' @param scale. Passed to \code{stats::prcomp()}; whether to scale variables
+#'   to unit variance before analysis. Default \code{TRUE}.
+#' @return A list with components:
+#'   \item{scores}{Data frame of PC1/PC2 scores per sample.}
+#'   \item{plot}{ggplot scatter plot of PC1 vs PC2.}
+#'   \item{pca}{The full \code{prcomp} object.}
+#' @examples
+#' \dontrun{
+#' csv_path <- system.file("extdata", "example_proteome.csv", package = "ProteomicsML")
+#' io <- read_wide_proteomics(csv_path)
+#' pca <- run_pca(io$expr, io$groups)
+#' pca$plot
+#' }
 #' @export
 run_pca <- function(expr, groups = NULL, scale. = TRUE) {
   pca <- stats::prcomp(t(expr), scale. = scale.)
@@ -232,7 +382,28 @@ run_pca <- function(expr, groups = NULL, scale. = TRUE) {
   list(scores = df, plot = p, pca = pca)
 }
 
-#' t-SNE
+#' t-SNE embedding of a proteomics matrix
+#'
+#' Runs \code{Rtsne::Rtsne()} on samples and returns a 2D embedding plotted by
+#' group. Requires the \pkg{Rtsne} package.
+#'
+#' @param expr Numeric matrix of expression values, proteins x samples.
+#' @param groups Optional factor (or vector) of group labels, length
+#'   \code{ncol(expr)}, used to color the plot. Default \code{NULL}.
+#' @param perplexity Perplexity parameter passed to \code{Rtsne::Rtsne()}.
+#'   Default \code{10}.
+#' @param seed Random seed for reproducibility. Default \code{42L}.
+#' @return A list with components:
+#'   \item{coords}{Data frame of tSNE1/tSNE2 coordinates per sample.}
+#'   \item{plot}{ggplot scatter plot of the embedding.}
+#'   \item{tsne}{The full \code{Rtsne} result object.}
+#' @examples
+#' \dontrun{
+#' csv_path <- system.file("extdata", "example_proteome.csv", package = "ProteomicsML")
+#' io <- read_wide_proteomics(csv_path)
+#' ts <- run_tsne(io$expr, io$groups, perplexity = 1)
+#' ts$plot
+#' }
 #' @export
 run_tsne <- function(expr, groups = NULL, perplexity = 10, seed = 42L) {
   stopifnot(requireNamespace("Rtsne", quietly = TRUE))
@@ -246,7 +417,26 @@ run_tsne <- function(expr, groups = NULL, perplexity = 10, seed = 42L) {
   list(coords = df, plot = p, tsne = ts)
 }
 
-#' PLS-DA (via pls::plsr with one-hot response)
+#' PLS-DA of a proteomics matrix
+#'
+#' Runs partial least squares discriminant analysis via
+#' \code{pls::plsr()} with a one-hot encoded group response. Requires the
+#' \pkg{pls} package.
+#'
+#' @param expr Numeric matrix of expression values, proteins x samples.
+#' @param groups Factor of group labels, length \code{ncol(expr)}.
+#' @param ncomp Number of PLS components to fit. Default \code{2}.
+#' @return A list with components:
+#'   \item{scores}{Data frame of Comp1/Comp2 scores per sample.}
+#'   \item{plot}{ggplot scatter plot of the first two components.}
+#'   \item{model}{The full \code{plsr} model object.}
+#' @examples
+#' \dontrun{
+#' csv_path <- system.file("extdata", "example_proteome.csv", package = "ProteomicsML")
+#' io <- read_wide_proteomics(csv_path)
+#' pls_res <- run_plsda(io$expr, io$groups)
+#' pls_res$plot
+#' }
 #' @export
 run_plsda <- function(expr, groups, ncomp = 2) {
   stopifnot(requireNamespace("pls", quietly = TRUE))
@@ -260,7 +450,31 @@ run_plsda <- function(expr, groups, ncomp = 2) {
   list(scores = scores, plot = p, model = fit)
 }
 
-#' Train multinomial LASSO (glmnet) with CV
+#' Train a multinomial LASSO classifier
+#'
+#' Fits a cross-validated multinomial LASSO (or elastic net) model via
+#' \code{glmnet::cv.glmnet()} at \code{lambda.1se}, and returns the top
+#' features per class plus a confusion matrix plot. Requires the
+#' \pkg{glmnet} package.
+#'
+#' @param expr Numeric matrix of expression values, proteins x samples.
+#' @param groups Factor of group labels, length \code{ncol(expr)}.
+#' @param alpha Elastic net mixing parameter passed to \code{glmnet}
+#'   (\code{1} = LASSO, \code{0} = ridge). Default \code{1}.
+#' @param seed Random seed for reproducibility. Default \code{42L}.
+#' @return A list with components:
+#'   \item{model}{The fitted \code{glmnet} model at \code{lambda.1se}.}
+#'   \item{best_lambda}{The selected \code{lambda.1se} value.}
+#'   \item{top_features}{Data frame of top 10 features per class by
+#'     coefficient magnitude.}
+#'   \item{confusion_plot}{ggplot heatmap of the training confusion matrix.}
+#' @examples
+#' \dontrun{
+#' csv_path <- system.file("extdata", "example_proteome.csv", package = "ProteomicsML")
+#' io <- read_wide_proteomics(csv_path)
+#' fit <- train_lasso(io$expr, io$groups)
+#' fit$confusion_plot
+#' }
 #' @export
 train_lasso <- function(expr, groups, alpha = 1, seed = 42L) {
   stopifnot(requireNamespace("glmnet", quietly = TRUE))
@@ -289,7 +503,29 @@ train_lasso <- function(expr, groups, alpha = 1, seed = 42L) {
   list(model = fit, best_lambda = lam, top_features = top_df, confusion_plot = p_cm)
 }
 
-#' Train Random Forest
+#' Train a Random Forest classifier
+#'
+#' Fits a \code{randomForest::randomForest()} classifier and returns variable
+#' importance plus a confusion matrix plot. Requires the \pkg{randomForest}
+#' package.
+#'
+#' @param expr Numeric matrix of expression values, proteins x samples.
+#' @param groups Factor of group labels, length \code{ncol(expr)}.
+#' @param ntree Number of trees to grow. Default \code{500}.
+#' @param mtry Number of variables sampled at each split. Defaults to
+#'   \code{floor(sqrt(ncol(x)))} if \code{NULL}.
+#' @param seed Random seed for reproducibility. Default \code{42L}.
+#' @return A list with components:
+#'   \item{model}{The fitted \code{randomForest} object.}
+#'   \item{importance}{Data frame of variable importance.}
+#'   \item{confusion_plot}{ggplot heatmap of the training confusion matrix.}
+#' @examples
+#' \dontrun{
+#' csv_path <- system.file("extdata", "example_proteome.csv", package = "ProteomicsML")
+#' io <- read_wide_proteomics(csv_path)
+#' fit <- train_rf(io$expr, io$groups)
+#' fit$confusion_plot
+#' }
 #' @export
 train_rf <- function(expr, groups, ntree = 500, mtry = NULL, seed = 42L) {
   stopifnot(requireNamespace("randomForest", quietly = TRUE))
@@ -309,10 +545,37 @@ train_rf <- function(expr, groups, ntree = 500, mtry = NULL, seed = 42L) {
 
 # ---- Clustering & enrichment ----
 
-#' Z-score rows (helper)
+#' Z-score rows of a matrix
+#'
+#' Internal helper: z-scores each row of a matrix (subtract mean, divide by
+#' SD), computed by scaling the transpose then transposing back.
+#'
+#' @param mat A numeric matrix.
+#' @return A numeric matrix of the same dimensions as \code{mat}, with rows
+#'   z-scored.
+#' @keywords internal
 zscore_rows <- function(mat) t(scale(t(mat)))
 
-#' Cluster proteome & detect modules
+#' Cluster a proteome and detect co-expression modules
+#'
+#' Selects the most variable proteins, hierarchically clusters samples by
+#' z-scored expression, draws a heatmap via \pkg{pheatmap}, and (if
+#' \pkg{dynamicTreeCut} is installed) cuts the tree into modules.
+#'
+#' @param expr Numeric matrix of expression values, proteins x samples.
+#' @param topN Number of most-variable proteins to include. Default \code{1000}.
+#' @param k_min Minimum module size passed to
+#'   \code{dynamicTreeCut::cutreeDynamic()}. Default \code{20}.
+#' @return A list with components:
+#'   \item{z}{Matrix of z-scored values (samples x features).}
+#'   \item{module_df}{Tibble mapping each protein to its detected module.}
+#'   A heatmap is also drawn as a side effect via \code{pheatmap::pheatmap()}.
+#' @examples
+#' \dontrun{
+#' csv_path <- system.file("extdata", "example_proteome.csv", package = "ProteomicsML")
+#' io <- read_wide_proteomics(csv_path)
+#' cl <- cluster_proteome(io$expr, topN = 4, k_min = 2)
+#' }
 #' @export
 cluster_proteome <- function(expr, topN = 1000, k_min = 20) {
   if (!requireNamespace("pheatmap", quietly = TRUE)) stop("Please install 'pheatmap'.")
@@ -347,7 +610,23 @@ cluster_proteome <- function(expr, topN = 1000, k_min = 20) {
   list(z = z, module_df = module_df)
 }
 
-#' Enrich modules (GO BP & KEGG)
+#' Enrich co-expression modules (GO BP & KEGG)
+#'
+#' For each module in \code{module_df} with at least 10 mapped genes, runs GO
+#' biological process and KEGG enrichment via \pkg{clusterProfiler}. Requires
+#' the Bioconductor packages \pkg{clusterProfiler} and \pkg{org.Hs.eg.db}.
+#'
+#' @param module_df A tibble with columns \code{Protein} and \code{Module},
+#'   as returned by \code{\link{cluster_proteome}}.
+#' @return A named list of enrichment result objects, with names like
+#'   \code{"GO_BP_M1"} and \code{"KEGG_M1"} for each module.
+#' @examples
+#' \dontrun{
+#' csv_path <- system.file("extdata", "example_proteome.csv", package = "ProteomicsML")
+#' io <- read_wide_proteomics(csv_path)
+#' cl <- cluster_proteome(io$expr, topN = 4, k_min = 2)
+#' enr <- enrich_modules(cl$module_df)
+#' }
 #' @export
 enrich_modules <- function(module_df) {
   ok <- requireNamespace("clusterProfiler", quietly = TRUE) &&
@@ -376,7 +655,19 @@ enrich_modules <- function(module_df) {
 
 # ---- Wizard ----
 
-#' Interactive proteomics analysis menu
+#' Launch the interactive proteomics analysis wizard
+#'
+#' Starts an interactive console menu that walks through the package's main
+#' workflows (differential expression + volcano, Reactome summaries, PCA /
+#' t-SNE / PLS-DA, LASSO + Random Forest, heatmap + module enrichment)
+#' without requiring the user to write any R code. Prompts for a CSV path
+#' and analysis choices via \code{readline()}/\code{utils::menu()}.
+#'
+#' @return Invisibly, \code{TRUE}. Called for its interactive side effects.
+#' @examples
+#' \dontrun{
+#' run_proteomics_wizard()
+#' }
 #' @export
 run_proteomics_wizard <- function() {
   cat("\n=== ProteomicsML: Analysis Wizard ===\n")

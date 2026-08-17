@@ -1,3 +1,16 @@
+# ProteomicsML 0.2.7
+
+## Documentation
+
+* Added complete roxygen documentation (title, parameter descriptions,
+  return value, `\dontrun{}` examples) for all 15 exported functions,
+  fixing "Undocumented code objects" and "No examples" NOTEs from
+  `R CMD check`.
+* Added the `man/` directory (was previously missing from the repo
+  entirely, despite `NAMESPACE` declaring exports).
+* Removed inaccurate `LazyData: true` from `DESCRIPTION` (no `data/`
+  directory exists).
+
 # ProteomicsML 0.2.6
 
 ## CI
