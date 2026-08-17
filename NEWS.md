@@ -1,3 +1,12 @@
+# ProteomicsML 0.2.5
+
+## Bug fixes
+
+* `EnhancedVolcano` (used in `plot_volcano()`) is also a Bioconductor-only
+  package but was missing from `Remotes:`, causing `pak` to fail dependency
+  resolution in CI (0.2.4 R-CMD-check still failed). Added
+  `bioc::EnhancedVolcano`.
+
 # ProteomicsML 0.2.4
 
 ## Bug fixes
