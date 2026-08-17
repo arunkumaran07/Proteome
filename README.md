@@ -24,6 +24,14 @@ remotes::install_github("arunkumaran07/Proteome")
 library(ProteomicsML)
 ```
 
+Core features (reading data, differential expression, volcano plots, PCA, LASSO/Random Forest, heatmaps) work with the packages installed above. A few optional features depend on **Bioconductor** packages that aren't on CRAN, so install them separately if you need:
+
+```r
+# Only needed for Reactome GSEA / GO / KEGG enrichment (reactome_gsea_from_de, enrich_modules):
+if (!requireNamespace("BiocManager", quietly = TRUE)) install.packages("BiocManager")
+BiocManager::install(c("clusterProfiler", "org.Hs.eg.db", "ReactomePA", "enrichplot"))
+```
+
 ## Preparing your CSV file
 
 Before running any analysis, your data needs to be a **wide-format CSV**: proteins/genes as rows, samples as columns, with one column holding the protein/gene ID. The package expects a specific layout:
