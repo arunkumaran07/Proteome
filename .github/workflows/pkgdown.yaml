@@ -26,7 +26,10 @@ jobs:
       - uses: r-lib/actions/setup-r-dependencies@v2
         with:
           extra-packages: any::pkgdown, local::.
-          needs: website
+          # Hard deps only -- see R-CMD-check.yaml for why: several Suggests
+          # are Bioconductor-only and only used behind requireNamespace()
+          # guards, so they aren't needed to build the reference site.
+          dependencies: '"hard"'
       - name: Build pkgdown site (outputs to docs/)
         run: Rscript -e 'pkgdown::build_site(preview = FALSE, new_process = FALSE)'
       - name: Configure Pages
