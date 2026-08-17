@@ -1,3 +1,17 @@
+# ProteomicsML 0.2.6
+
+## CI
+
+* `R-CMD-check.yaml` now installs only hard dependencies (Depends/Imports/
+  LinkingTo) before running check, instead of forcing `pak` to resolve every
+  optional `Suggests` package. Several Suggests are heavy, Bioconductor-only
+  packages used solely behind `requireNamespace()` guards at runtime
+  (`clusterProfiler`, `org.Hs.eg.db`, `ReactomePA`, `enrichplot`,
+  `EnhancedVolcano`); pre-resolving them in CI was fragile and caused
+  R-CMD-check to fail during dependency installation in 0.2.3-0.2.5, before
+  the actual check ever ran. `_R_CHECK_FORCE_SUGGESTS_=false` (already set)
+  means `R CMD check` itself tolerates their absence.
+
 # ProteomicsML 0.2.5
 
 ## Bug fixes

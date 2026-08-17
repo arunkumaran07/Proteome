@@ -1,7 +1,7 @@
 Package: ProteomicsML
 Type: Package
 Title: Tools for Proteomics Data Analysis
-Version: 0.2.5
+Version: 0.2.6
 Authors@R: 
     c(person(given = "Arun K",
              family = "Anguraj Vadivel",

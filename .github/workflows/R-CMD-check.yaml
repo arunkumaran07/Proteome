@@ -31,7 +31,14 @@ jobs:
       - uses: r-lib/actions/setup-r-dependencies@v2
         with:
           extra-packages: any::rcmdcheck, local::.
-          needs: check
+          # Only install hard deps (Depends/Imports/LinkingTo) ahead of check.
+          # Several Suggests are optional, heavy Bioconductor-only packages
+          # (clusterProfiler, org.Hs.eg.db, ReactomePA, enrichplot,
+          # EnhancedVolcano) used only behind requireNamespace() guards at
+          # runtime; forcing pak to resolve/install them here is slow and
+          # fragile in CI. _R_CHECK_FORCE_SUGGESTS_=false above means check
+          # already tolerates their absence.
+          dependencies: '"hard"'
 
       - name: Check
         run: rcmdcheck::rcmdcheck(args = c("--no-manual", "--as-cran", "--no-build-vignettes"), env  = c("_R_CHECK_BUILD_VIGNETTES_" = "false", "_R_CHECK_FORCE_SUGGESTS_"  = "false"))
