@@ -1,3 +1,12 @@
+# ProteomicsML 0.2.4
+
+## Bug fixes
+
+* Fixed invalid `Remotes:` syntax in `DESCRIPTION` (`bioc::release/<pkg>` is
+  not valid pak/remotes syntax and broke CI dependency installation).
+  Corrected to `bioc::<pkg>`, which resolves the Bioconductor release
+  matching the installed R version.
+
 # ProteomicsML 0.2.3
 
 ## Bug fixes

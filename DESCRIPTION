@@ -1,7 +1,7 @@
 Package: ProteomicsML
 Type: Package
 Title: Tools for Proteomics Data Analysis
-Version: 0.2.3
+Version: 0.2.4
 Authors@R: 
     c(person(given = "Arun K",
              family = "Anguraj Vadivel",
@@ -45,8 +45,8 @@ Suggests:
     testthat (>= 3.0.0),
     pkgdown
 Remotes:
-    bioc::release/clusterProfiler,
-    bioc::release/org.Hs.eg.db,
-    bioc::release/ReactomePA,
-    bioc::release/enrichplot
+    bioc::clusterProfiler,
+    bioc::org.Hs.eg.db,
+    bioc::ReactomePA,
+    bioc::enrichplot
 Config/testthat/edition: 3
